@@ -25,6 +25,10 @@ public class Stats {
                 + plogp(tt / length, xs / length, ys / length);
     }
 
+    public static double mutualInformation(Observable x, Observable y, int timeFrom, int timeTo) {
+        return mutualInformation(x.getValues(), y.getValues(), timeFrom, timeTo);
+    }
+
     private static double plogp(double pxy, double px, double py) {
         if (pxy == 0) {
             return 0;
