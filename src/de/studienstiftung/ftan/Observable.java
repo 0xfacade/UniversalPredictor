@@ -1,10 +1,16 @@
 package de.studienstiftung.ftan;
 
+import org.omg.CORBA.TIMEOUT;
+
+import java.util.ArrayList;
+import java.util.List;
+
 public abstract class Observable {
 
     protected boolean[] values = null;
     private int id;
     private double mutualInformationWithDependent = -1;
+    private boolean isFree = true;
 
     private static volatile int nextId = 0;
 
@@ -38,6 +44,17 @@ public abstract class Observable {
         return this.id;
     }
 
+    public CompositeObservable toCompositeObservable() {
+        if (this instanceof CompositeObservable) {
+            return (CompositeObservable) this;
+        }
+        List<Observable> subobservable = new ArrayList<>();
+        subobservable.add(this);
+        boolean[] function = {false, true};
+
+        return new CompositeObservable(subobservable, function);
+    }
+
     @Override
     public int hashCode() {
         return this.id;
@@ -57,4 +74,23 @@ public abstract class Observable {
         }
         return this.mutualInformationWithDependent;
     }
+
+    public final double getCorrectnessPercent() {
+        int correct = 0;
+        boolean[] d = Main.dependent.getValues();
+        for(int i = 500000; i < Main.TIMESTEPS; i++) {
+            correct += d[i] == this.values[i] ? 1 : 0;
+        }
+        return correct / (double) (Main.TIMESTEPS - 500000);
+    }
+
+    public boolean isFree() {
+        return this.isFree;
+    }
+
+    public void setIsFree(boolean free) {
+        this.isFree = free;
+    }
+
+    public abstract int getOrder();
 }
