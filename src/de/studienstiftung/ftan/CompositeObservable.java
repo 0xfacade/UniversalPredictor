@@ -28,7 +28,7 @@ public class CompositeObservable extends Observable {
         return Maximator.maximize(Main.dependent, clone, 500000);
     }
 
-    public CompositeObservable compressHeavy() {
+    public CompositeObservable compressHeavy(List<Observable> addRemovedObservableTo) {
         CompositeObservable max = null;
         int removedIndex = -1;
         double maxValue = -1;
@@ -40,9 +40,12 @@ public class CompositeObservable extends Observable {
                 removedIndex = i;
             }
         }
-        System.out.println("Removed variable " + this.subObservables.get(removedIndex).getId()
+        Observable removedObservable = this.subObservables.get(removedIndex);
+        addRemovedObservableTo.add(removedObservable);
+
+        System.out.println("Removed variable " + removedObservable.getId()
                 + " with mutual info of "
-                + this.subObservables.get(removedIndex).getMutualInformationWithDependent());
+                + removedObservable.getMutualInformationWithDependent());
         return max;
     }
 

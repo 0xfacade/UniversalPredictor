@@ -12,6 +12,7 @@ public class ArrayObservable extends Observable {
     private double[] std = null;
     private double[] gyr = null;
     private double threshold = Double.MIN_VALUE;
+    private int timeshift = 0;
 
     public ArrayObservable(boolean[] values) {
         super();
@@ -35,7 +36,7 @@ public class ArrayObservable extends Observable {
         return 0;
     }
 
-    public List<ArrayObservable> generateRandom (double [] [] preObservables, int n ) {
+    public static List<ArrayObservable> generateRandom (double[][] preObservables, int n) {
         int dim = preObservables.length;
         int ts = preObservables [0].length;
         double [] [] normPreObservables = new double [dim] [ts];
@@ -87,5 +88,28 @@ public class ArrayObservable extends Observable {
         }
 
         return observables;
+    }
+
+
+    public ArrayObservable timeshift(int t) {
+        t = Math.max(t, -this.timeshift);
+        boolean[] shifted = new boolean[this.values.length];
+        if(t >= 0) {
+            for(int i = t; i < this.values.length; i++) {
+                shifted[i] = this.values[i-t];
+            }
+        } else {
+            for(int i = 0; i < this.values.length + t; i++) {
+                shifted[i] = this.values[i-t];
+            }
+        }
+        ArrayObservable shiftedObservable = new ArrayObservable(shifted);
+        shiftedObservable.avg = this.avg;
+        shiftedObservable.std = this.std;
+        shiftedObservable.gyr = this.gyr;
+        shiftedObservable.threshold = this.threshold;
+        shiftedObservable.timeshift = this.timeshift + t;
+
+        return shiftedObservable;
     }
 }

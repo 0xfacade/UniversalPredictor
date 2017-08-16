@@ -14,22 +14,17 @@ public class LorentzAttractor {
     private static final int DELTAS_PER_STEP = 500;
 
     private int timesteps;
-    private int preHistorySteps;
-
-    double[][] preXyzs;
     double[][] xyzs;
     boolean[] dependentVariable;
 
-    public LorentzAttractor(int preHistorySteps, int timesteps) {
-        this.preHistorySteps = preHistorySteps;
+    public LorentzAttractor(int timesteps) {
         this.timesteps = timesteps;
         computeAll();
     }
 
     private void computeAll() {
 
-        this.preXyzs = new double[this.preHistorySteps][3];
-        this.xyzs = new double[this.timesteps][3];
+        this.xyzs = new double[3][this.timesteps];
         dependentVariable = new boolean[this.timesteps];
 
         double x = 1;
@@ -47,24 +42,10 @@ public class LorentzAttractor {
             }
         }
 
-        for(int step = 0; step < this.preHistorySteps; step++) {
-            preXyzs[step][0] = x;
-            preXyzs[step][1] = y;
-            preXyzs[step][2] = z;
-            for(int deltaStep = 0; deltaStep < DELTAS_PER_STEP; deltaStep++) {
-                double xNew = x + DELTA * (SIGMA * (y - x));
-                double yNew = y + DELTA * (x * (RHO - z) - y);
-                double zNew = z + DELTA * (x * y - BETA * z);
-                x = xNew;
-                y = yNew;
-                z = zNew;
-            }
-        }
-
         for(int step = 0; step < this.timesteps; step++) {
-            xyzs[step][0] = x;
-            xyzs[step][1] = y;
-            xyzs[step][2] = z;
+            xyzs[0][step] = x;
+            xyzs[1][step] = y;
+            xyzs[2][step] = z;
             for(int deltaStep = 0; deltaStep < DELTAS_PER_STEP; deltaStep++) {
                 double xNew = x + DELTA * (SIGMA * (y - x));
                 double yNew = y + DELTA * (x * (RHO - z) - y);
@@ -80,8 +61,8 @@ public class LorentzAttractor {
     public void dump() throws IOException {
         PrintWriter out = new PrintWriter("output.csv");
         for (int step = 0; step < timesteps; step++){
-            out.println(xyzs[step][0] + "," + xyzs[step][1] + ","
-                    + xyzs[step][2] + "," + (dependentVariable[step] ? '1' : '0'));
+            out.println(xyzs[0][step] + "," + xyzs[1][step] + ","
+                    + xyzs[2][step] + "," + (dependentVariable[step] ? '1' : '0'));
         }
         out.close();
     }
