@@ -27,35 +27,49 @@ public class Main {
         }
 
         List<Observable> superComposites = new ArrayList<>();
+        List<Thread> threads = new ArrayList<>(7);
 
         for(int n = 0; n < 7; n++) {
-            List<Observable> composites = new ArrayList<>();
-            for(int k = 0; k < 10; k++) {
-                List<ArrayObservable> generated = ArrayObservable.generateRandom(x.xyzs, 4);
-                List<Observable> observables = new ArrayList<>(generated);
-                for(int i = 0; i < 4; i++) {
-                    ArrayObservable o = generated.get(i);
-                    for(int j = 1; j < 4; j++) {
-                        ArrayObservable shifted = o.timeshift(j);
-                        observables.add(shifted);
+            Thread t = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    List<Observable> composites = new ArrayList<>();
+                    for(int k = 0; k < 10; k++) {
+                        List<ArrayObservable> generated = ArrayObservable.generateRandom(x.xyzs, 4);
+                        List<Observable> observables = new ArrayList<>(generated);
+                        for(int i = 0; i < 4; i++) {
+                            ArrayObservable o = generated.get(i);
+                            for(int j = 1; j < 4; j++) {
+                                ArrayObservable shifted = o.timeshift(j);
+                                observables.add(shifted);
+                            }
+                        }
+
+                        CompositeObservable r = observables.get(1).toCompositeObservable();
+                        for(int i = 0; i < 6; i++) {
+                            r = r.expandHeavy(observables);
+                        }
+                        r = r.compressHeavy(observables);
+                        r = r.compressHeavy(observables);
+                        composites.add(r);
+                        System.out.println("Generated composite with " + r.getMutualInformationWithDependent());
+                    }
+
+                    Observable max = Maximator.maximize(dependent, composites, 500000);
+                    System.out.println(max.getMutualInformationWithDependent());
+                    System.out.println(max.getCorrectnessPercent());
+
+                    synchronized (superComposites) {
+                        superComposites.add(max);
                     }
                 }
+            });
+            threads.add(t);
+            t.start();
+        }
 
-                CompositeObservable r = observables.get(1).toCompositeObservable();
-                for(int i = 0; i < 6; i++) {
-                    r = r.expandHeavy(observables);
-                }
-                r = r.compressHeavy(observables);
-                r = r.compressHeavy(observables);
-                composites.add(r);
-                System.out.println("Generated composite with " + r.getMutualInformationWithDependent());
-            }
-
-            Observable max = Maximator.maximize(dependent, composites, 500000);
-            System.out.println(max.getMutualInformationWithDependent());
-            System.out.println(max.getCorrectnessPercent());
-
-            superComposites.add(max);
+        for(Thread t : threads) {
+            t.join();
         }
 
         Observable superMax = Maximator.maximize(dependent, superComposites, 500000);
