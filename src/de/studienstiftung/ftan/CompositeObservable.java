@@ -42,10 +42,6 @@ public class CompositeObservable extends Observable {
         }
         Observable removedObservable = this.subObservables.get(removedIndex);
         addRemovedObservableTo.add(removedObservable);
-
-        System.out.println("Removed variable " + removedObservable.getId()
-                + " with mutual info of "
-                + removedObservable.getMutualInformationWithDependent());
         return max;
     }
 
