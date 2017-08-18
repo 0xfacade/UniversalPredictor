@@ -1,14 +1,7 @@
 package de.studienstiftung.ftan;
 
-import java.io.BufferedWriter;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.PrintWriter;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
-import java.util.PriorityQueue;
 
 public class Main {
 
@@ -18,13 +11,11 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
 
+        System.out.println("Generating dynamics..");
         LorentzAttractor x = new LorentzAttractor(TIMESTEPS);
         dependent = new ArrayObservable(x.dependentVariable);
 
-        boolean[] random = new boolean[TIMESTEPS];
-        for (int i = 0; i < TIMESTEPS; i++) {
-            random[i] = Math.random() < 0.5;
-        }
+        System.out.println("Dynamics generated, starting to generate comoposite observables!");
 
         List<Observable> superComposites = new ArrayList<>();
         List<Thread> threads = new ArrayList<>(7);
@@ -52,12 +43,13 @@ public class Main {
                         r = r.compressHeavy(observables);
                         r = r.compressHeavy(observables);
                         composites.add(r);
-                        System.out.println("Generated composite with " + r.getMutualInformationWithDependent());
+                        System.out.println("Generated single composite with " + (r.getMutualInformationWithDependent() * 100) );
                     }
 
+                    System.out.println("Now generating a meta composite..");
                     Observable max = Maximator.maximize(dependent, composites, 500000);
-                    System.out.println(max.getMutualInformationWithDependent());
-                    System.out.println(max.getCorrectnessPercent());
+                    System.out.println(max.getMutualInformationWithDependent() + " mutual information");
+                    System.out.println((max.getCorrectnessPercent() * 100) + "% correct prediction");
 
                     synchronized (superComposites) {
                         superComposites.add(max);
@@ -72,46 +64,10 @@ public class Main {
             t.join();
         }
 
+        System.out.println("All composites generated. Will now generate super composite.");
         Observable superMax = Maximator.maximize(dependent, superComposites, 500000);
-        System.out.println(superMax.getMutualInformationWithDependent());
-        System.out.println(superMax.getCorrectnessPercent());
-
-
-        /*
-        CompositeObservable max = Maximator.maximize(dependent, observables, 500000);
-        System.out.println("Max: " + Stats.mutualInformation(dependent, max, 500000, TIMESTEPS));
-
-
-        CompositeObservable compressed = max;
-        for(int i = 0; i < 15; i++) {
-            compressed = compressed.compressHeavy();
-            System.out.println(i + "th compression step: " + compressed.getMutualInformationWithDependent());
-        }
-
-
-        System.out.println("H(Dep): " + Stats.mutualInformation(x.dependentVariable, x.dependentVariable,500000, TIMESTEPS));
-
-        Comparator<Observable> comparator = new Comparator<Observable>() {
-            @Override
-            public int compare(Observable o1, Observable o2) {
-                double m1 = o1.getMutualInformationWithDependent();
-                double m2 = o2.getMutualInformationWithDependent();
-                return Double.compare(m2, m1);
-            }
-        };
-
-        PriorityQueue<Observable> pq = new PriorityQueue<>(comparator);
-        pq.addAll(observables);
-
-        CompositeObservable expanded = pq.remove().toCompositeObservable();
-        for(int i = 0; i < 15; i++) {
-            expanded = expanded.expandHeavy(observables);
-            System.out.println(i + "th expansion step: " + expanded.getMutualInformationWithDependent());
-        }
-
-        System.out.println(expanded.getCorrectnessPercent());
-        */
-
+        System.out.println("Mutual information: " + superMax.getMutualInformationWithDependent());
+        System.out.println("Correctness: " + (superMax.getCorrectnessPercent() * 100) + "%");
     }
 
 }
