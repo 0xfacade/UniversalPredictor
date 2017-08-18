@@ -13,6 +13,7 @@ public class Main {
 
         System.out.println("Generating dynamics..");
         LorentzAttractor x = new LorentzAttractor(TIMESTEPS);
+        x.dump();
         dependent = new ArrayObservable(x.dependentVariable);
 
         System.out.println("Dynamics generated, starting to generate comoposite observables!");
@@ -43,7 +44,7 @@ public class Main {
                         r = r.compressHeavy(observables);
                         r = r.compressHeavy(observables);
                         composites.add(r);
-                        System.out.println("Generated single composite with " + (r.getMutualInformationWithDependent() * 100) );
+                        System.out.println("Generated single composite with " + r.getMutualInformationWithDependent());
                     }
 
                     System.out.println("Now generating a meta composite..");
